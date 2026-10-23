@@ -1,0 +1,37 @@
+
+name: Sync Vulnerability Databases
+
+on:
+schedule:
+- cron: "7,17,27,37,47,57 * * * *"
+workflow_dispatch:
+
+permissions:
+contents: read
+
+concurrency:
+group: advisory-sync
+cancel-in-progress: false
+
+jobs:
+sync:
+runs-on: ubuntu-latest
+
+steps:
+- name: Sync GHSA database
+env:
+GH_TOKEN: ${{ secrets.MIRROR_SYNC_TOKEN }}
+OWNER: ${{ github.repository_owner }}
+run: |
+gh api --method POST \
+"repos/$OWNER/advisory-database/merge-upstream" \
+-f branch=main
+
+- name: Sync CVE database
+env:
+GH_TOKEN: ${{ secrets.MIRROR_SYNC_TOKEN }}
+OWNER: ${{ github.repository_owner }}
+run: |
+gh api --method POST \
+"repos/$OWNER/cvelistV5/merge-upstream" \
+-f branch=main
